@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" default-locale="fr-FR" page-range-format="expanded">
   <info>
-    <title>Économie et Statistique (French)</title>
-    <title-short>Éco &amp; Stat</title-short>
-    <id>http://www.zotero.org/styles/economie-et-statistique</id>
-    <link href="http://www.zotero.org/styles/economie-et-statistique" rel="self"/>
-    <link href="http://www.insee.fr/fr/publications-et-services/collection.asp?id=2" rel="documentation"/>
+    <title>Revue française de sociologie (French)</title>
+    <title-short>RFS</title-short>
+    <id>http://www.zotero.org/styles/revue-francaise-de-sociologie</id>
+    <link href="http://www.zotero.org/styles/revue-francaise-de-sociologie" rel="self"/>
+    <link href="http://www.zotero.org/styles/economie-et-statistique" rel="template"/>
+    <link href="http://www.rfs-revue.com/" rel="documentation"/>
     <author>
       <name>Milan Bouchet-Valat</name>
       <email>nalimilan@club.fr</email>
@@ -13,8 +14,8 @@
     <category citation-format="author-date"/>
     <category field="social_science"/>
     <category field="sociology"/>
-    <issn>0336-1454</issn>
-    <summary>Le style de la revue de l'INSEE Économie et Statistique.</summary>
+    <issn>0035-2969</issn>
+    <summary>Le style utilisé depuis 2013 par la Revue française de sociologie.</summary>
     <updated>2013-10-28T16:01:00+01:00</updated>
     <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
   </info>
@@ -22,14 +23,13 @@
     <terms>
       <term name="editor" form="short">
         <single>dir.</single>
-        <multiple>dir.</multiple>
+        <multiple>dirs.</multiple>
       </term>
-      <term name="page" form="short">pp.</term>
     </terms>
   </locale>
   <macro name="editor">
     <names variable="editor" delimiter=" ">
-      <name and="text" delimiter=", " delimiter-precedes-last="never"/>
+      <name and="text" delimiter=", " delimiter-precedes-last="always"/>
       <label form="short" prefix=" (" suffix=")" text-case="lowercase"/>
       <substitute>
         <names variable="editorial-director"/>
@@ -38,11 +38,11 @@
   </macro>
   <macro name="author-last">
     <names variable="author">
-      <name and="text" name-as-sort-order="all" sort-separator=" " delimiter=", " delimiter-precedes-last="never" initialize-with="."/>
+      <name name-as-sort-order="all" sort-separator=" " delimiter=", " delimiter-precedes-last="always" initialize-with="." font-variant="small-caps"/>
       <label form="short" prefix=" " text-case="lowercase"/>
       <substitute>
         <names variable="editor">
-          <name and="text" name-as-sort-order="all" sort-separator=", " delimiter=", " delimiter-precedes-last="never" initialize-with="."/>
+          <name name-as-sort-order="all" sort-separator=", " delimiter=", " delimiter-precedes-last="always" initialize-with="." font-variant="small-caps"/>
           <label form="short" prefix=" (" suffix=")" text-case="lowercase"/>
           <substitute>
             <names variable="editorial-director"/>
@@ -54,11 +54,11 @@
   <!-- Same as author-last except that name is not initialized to sort on first name too -->
   <macro name="author-sort">
     <names variable="author">
-      <name and="text" name-as-sort-order="all" sort-separator=" " delimiter=", " delimiter-precedes-last="never"/>
+      <name name-as-sort-order="all" sort-separator=" " delimiter=", " delimiter-precedes-last="always" font-variant="small-caps"/>
       <label form="short" prefix=" " text-case="lowercase"/>
       <substitute>
         <names variable="editor">
-          <name and="text" name-as-sort-order="all" sort-separator=", " delimiter=", " delimiter-precedes-last="never"/>
+          <name and="text" name-as-sort-order="all" sort-separator=", " delimiter=", " delimiter-precedes-last="always" font-variant="small-caps"/>
           <label form="short" prefix=" (" suffix=")" text-case="lowercase"/>
           <substitute>
             <names variable="editorial-director"/>
@@ -89,6 +89,13 @@
         </date>
       </group>
     </group>
+  </macro>
+  <macro name="publisher-collection">
+    <group delimiter=", ">
+      <text variable="publisher-place"/>
+      <text variable="publisher"/>
+    </group>
+    <text variable="collection-title" prefix=" (" suffix=")"/>
   </macro>
   <macro name="year-date">
     <group prefix=" ">
@@ -137,8 +144,8 @@
     </choose>
   </macro>
   <macro name="issue">
-    <text variable="volume" prefix=", vol.&#160;"/>
-    <text variable="issue" prefix=", n°"/>
+    <text variable="volume" font-style="italic" suffix=", "/>
+    <text variable="issue"/>
   </macro>
   <macro name="citation-locator">
     <group>
@@ -148,7 +155,7 @@
   </macro>
   <macro name="page">
     <group>
-      <label variable="page" prefix=", " suffix=".&#160;" form="short"/>
+      <label variable="page" suffix=".&#160;" form="short"/>
       <text variable="page"/>
     </group>
   </macro>
@@ -176,10 +183,12 @@
       <key variable="issued"/>
     </sort>
     <layout suffix=".">
-      <text macro="author-last" font-weight="bold"/>
-      <date variable="issued" prefix=" (" suffix=")" font-weight="bold">
-        <date-part name="year"/>
-      </date>
+      <group delimiter=", " suffix=", ">
+        <text macro="author-last"/>
+        <date variable="issued">
+          <date-part name="year"/>
+        </date>
+      </group>
       <choose>
         <if type="report">
           <text variable="title" quotes="true" prefix=", "/>
@@ -187,24 +196,21 @@
             <text variable="genre"/>
             <text variable="collection-title" prefix=", "/>
             <text variable="number" prefix=" n°"/>
-            <text variable="publisher-place"/>
-            <text variable="publisher"/>
           </group>
+          <text macro="publisher-collection"/>
         </if>
         <else-if type="book">
-          <group prefix=", " delimiter=", ">
+          <group delimiter=", ">
             <text variable="title" font-style="italic"/>
             <text variable="genre"/>
             <text macro="editor"/>
             <text macro="edition"/>
-            <text variable="publisher-place"/>
-            <text variable="publisher"/>
-            <text variable="collection-title"/>
+            <text macro="publisher-collection"/>
             <text macro="number-of-pages"/>
           </group>
         </else-if>
         <else-if type="thesis">
-          <group prefix=", " delimiter=", ">
+          <group delimiter=", ">
             <text variable="title" font-style="italic"/>
             <choose>
               <if variable="genre">
@@ -215,28 +221,25 @@
               </else>
             </choose>
             <text macro="edition"/>
-            <text variable="publisher-place"/>
-            <text variable="publisher"/>
+            <text macro="publisher-collection"/>
             <text macro="number-of-pages"/>
           </group>
         </else-if>
         <else-if type="chapter">
-          <text variable="title" quotes="true" prefix=", "/>
+          <text variable="title" quotes="true"/>
           <group prefix=", ">
-            <text value="in" suffix=" " font-style="italic"/>
+            <text value="dans" suffix=" "/>
             <text macro="editor" suffix=", "/>
             <group delimiter=", ">
               <text variable="container-title" font-style="italic"/>
               <text macro="edition"/>
-              <text variable="publisher-place"/>
-              <text variable="publisher"/>
-              <text variable="collection-title"/>
+              <text macro="publisher-collection"/>
               <text macro="page"/>
             </group>
           </group>
         </else-if>
         <else-if type="speech">
-          <group prefix=", " delimiter=", ">
+          <group delimiter=", ">
             <text variable="title" quotes="true"/>
             <text variable="event"/>
             <text variable="event-place"/>
@@ -244,20 +247,20 @@
           </group>
         </else-if>
         <else-if type="article-newspaper article-magazine interview broadcast" match="any">
-          <group prefix=", " delimiter=", ">
+          <group delimiter=", ">
             <text variable="title" quotes="true"/>
             <text variable="container-title" font-style="italic" prefix=" "/>
             <text macro="full-date"/>
+            <text macro="page"/>
           </group>
-          <text macro="page"/>
         </else-if>
         <else>
-          <group delimiter=" " suffix="," prefix=", ">
+          <group delimiter=" " suffix=",">
             <text variable="title" quotes="true"/>
             <text macro="editor"/>
           </group>
-          <group prefix=" ">
-            <text variable="container-title" font-style="italic" prefix=" "/>
+          <group prefix=" " delimiter=", ">
+            <text variable="container-title" font-style="italic"/>
             <text macro="issue"/>
             <text macro="page"/>
           </group>
