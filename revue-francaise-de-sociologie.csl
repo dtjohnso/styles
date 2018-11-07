@@ -15,8 +15,9 @@
     <category field="social_science"/>
     <category field="sociology"/>
     <issn>0035-2969</issn>
+    <eissn>1958-5691</eissn>
     <summary>Le style utilisé depuis 2013 par la Revue française de sociologie.</summary>
-    <updated>2013-10-28T16:01:00+01:00</updated>
+    <updated>2015-01-29T21:50:00+01:00</updated>
     <rights license="http://creativecommons.org/licenses/by-sa/3.0/">This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License</rights>
   </info>
   <locale xml:lang="fr">
@@ -29,7 +30,7 @@
   </locale>
   <macro name="editor">
     <names variable="editor" delimiter=" ">
-      <name and="text" delimiter=", " delimiter-precedes-last="always"/>
+      <name name-as-sort-order="all" sort-separator=" " delimiter=", " delimiter-precedes-last="always" initialize-with="." font-variant="small-caps"/>
       <label form="short" prefix=" (" suffix=")" text-case="lowercase"/>
       <substitute>
         <names variable="editorial-director"/>
@@ -72,23 +73,14 @@
       <name form="short" and="text" delimiter=", " delimiter-precedes-last="never"/>
       <substitute>
         <names variable="editor"/>
-        <names variable="translator"/>
       </substitute>
     </names>
   </macro>
-  <macro name="access">
-    <group delimiter=" ">
-      <text value="Adresse :"/>
-      <text variable="URL"/>
-      <group prefix="[" suffix="]">
-        <text term="accessed" text-case="capitalize-first" suffix=": "/>
-        <date variable="accessed">
-          <date-part name="day" suffix=" "/>
-          <date-part name="month" suffix=" "/>
-          <date-part name="year"/>
-        </date>
-      </group>
-    </group>
+  <macro name="translator">
+    <text term="translator" form="verb" suffix=" "/>
+    <names variable="translator">
+      <name name-as-sort-order="all" sort-separator=" " delimiter=", " delimiter-precedes-last="always" initialize-with="." font-variant="small-caps"/>
+    </names>
   </macro>
   <macro name="publisher-collection">
     <group delimiter=", ">
@@ -97,21 +89,14 @@
     </group>
     <text variable="collection-title" prefix=" (" suffix=")"/>
   </macro>
-  <macro name="year-date">
-    <group prefix=" ">
-      <choose>
-        <if variable="issued">
-          <date variable="issued">
-            <date-part name="year"/>
-          </date>
-        </if>
-        <else>
-          <text term="no date"/>
-        </else>
-      </choose>
-    </group>
-  </macro>
   <macro name="year-date-short">
+    <choose>
+      <if variable="original-date">
+        <date variable="original-date" prefix="[" suffix="] ">
+          <date-part name="year"/>
+        </date>
+      </if>
+    </choose>
     <choose>
       <if variable="issued">
         <date variable="issued">
@@ -143,10 +128,6 @@
       </else>
     </choose>
   </macro>
-  <macro name="issue">
-    <text variable="volume" font-style="italic" suffix=", "/>
-    <text variable="issue"/>
-  </macro>
   <macro name="citation-locator">
     <group>
       <label variable="locator" form="short" suffix=".&#160;"/>
@@ -167,7 +148,7 @@
   <citation et-al-min="4" et-al-use-first="1" disambiguate-add-year-suffix="true" disambiguate-add-names="true" collapse="year">
     <sort>
       <key macro="author-last"/>
-      <key macro="year-date"/>
+      <key macro="year-date-short"/>
     </sort>
     <layout prefix="(" suffix=")" delimiter="&#160;; ">
       <group delimiter=", ">
@@ -183,35 +164,40 @@
       <key variable="issued"/>
     </sort>
     <layout suffix=".">
-      <group delimiter=", " suffix=", ">
-        <text macro="author-last"/>
-        <date variable="issued">
-          <date-part name="year"/>
-        </date>
-      </group>
+      <text macro="author-last" suffix=", "/>
+      <text macro="year-date-short" suffix=", "/>
       <choose>
         <if type="report">
-          <text variable="title" quotes="true" prefix=", "/>
-          <group prefix=", ">
+          <group delimiter=", ">
+            <text variable="title" quotes="true"/>
+            <text macro="translator"/>
             <text variable="genre"/>
-            <text variable="collection-title" prefix=", "/>
-            <text variable="number" prefix=" n°"/>
+            <text variable="collection-title" font-style="italic"/>
+            <text variable="number"/>
+            <text variable="publisher-place"/>
+            <text variable="publisher"/>
           </group>
-          <text macro="publisher-collection"/>
         </if>
         <else-if type="book">
           <group delimiter=", ">
             <text variable="title" font-style="italic"/>
+            <text macro="translator"/>
             <text variable="genre"/>
             <text macro="editor"/>
             <text macro="edition"/>
             <text macro="publisher-collection"/>
+            <text variable="medium"/>
+            <group delimiter=" ">
+              <text term="version"/>
+              <text variable="version"/>
+            </group>
             <text macro="number-of-pages"/>
           </group>
         </else-if>
         <else-if type="thesis">
           <group delimiter=", ">
             <text variable="title" font-style="italic"/>
+            <text macro="translator"/>
             <choose>
               <if variable="genre">
                 <text variable="genre"/>
@@ -232,6 +218,7 @@
             <text macro="editor" suffix=", "/>
             <group delimiter=", ">
               <text variable="container-title" font-style="italic"/>
+              <text macro="translator"/>
               <text macro="edition"/>
               <text macro="publisher-collection"/>
               <text macro="page"/>
@@ -244,6 +231,7 @@
             <text variable="event"/>
             <text variable="event-place"/>
             <text macro="full-date"/>
+            <text macro="translator"/>
           </group>
         </else-if>
         <else-if type="article-newspaper article-magazine interview broadcast" match="any">
@@ -251,6 +239,7 @@
             <text variable="title" quotes="true"/>
             <text variable="container-title" font-style="italic" prefix=" "/>
             <text macro="full-date"/>
+            <text macro="translator"/>
             <text macro="page"/>
           </group>
         </else-if>
@@ -261,7 +250,9 @@
           </group>
           <group prefix=" " delimiter=", ">
             <text variable="container-title" font-style="italic"/>
-            <text macro="issue"/>
+            <text variable="volume" font-style="italic"/>
+            <text variable="issue"/>
+            <text macro="translator"/>
             <text macro="page"/>
           </group>
         </else>

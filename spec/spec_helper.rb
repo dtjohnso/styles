@@ -1,4 +1,5 @@
 require 'csl'
+require 'json'
 
 STYLE_ROOT = File.expand_path('../..', __FILE__)
 
@@ -10,7 +11,9 @@ ISSN_FILTER = %w{
   1662-453X 1663-9812 1664-042X 1664-0640 1664-1078 1664-2295
   1664-2392 1664-302X 1664-3224 1664-462X 1664-8021 2234-943X
   0036-8075 1095-9203 1359-4184 1476-5578 1097-6256 1047-7594
-  1546-1726
+  1546-1726 2108-6419 0035-2969 1958-5691 0943-8610 2194-508X
+  0223-5099 0322-8916 1805-6555 1899-0665 0305-1048 1362-4962
+  0042-7306 1783-1830
 }
 
 # These titles are ignored when checking for duplicate titles
@@ -24,78 +27,70 @@ CITATION_FORMAT_FILTER = %w{
   bibtex blank national-archives-of-australia
 }
 
-# These files are ignored when checking for extra files
+# These styles are ignored when checking for unused macros
+UNUSED_MACROS_FILTER = %w{
+  chicago-annotated-bibliography chicago-author-date chicago-author-date-16th-edition
+  chicago-library-list chicago-note-bibliography-16th-edition
+  chicago-note-bibliography-with-ibid
+  chicago-note-bibliography taylor-and-francis-chicago-author-date
+}
+
+# These files and directories are ignored when checking for extra files
 EXTRA_FILES_FILTER = [
   'CONTRIBUTING.md', 'Gemfile', 'Gemfile.lock', 'README.md',
-  'dependent', 'Rakefile', 'spec', 'spec_helper.rb', /_spec\.rb$/,
-  'renamed-styles.json'
+  'dependent', 'Rakefile', 'renamed-styles.json'
+]
+
+# These directories and their contents are ignored when checking for extra files
+EXTRA_FILES_DIRECTORY_FILTER = [
+  'spec', 'vendor'
 ]
 
 EXTRA_FILES = Dir[File.join(STYLE_ROOT, '**', '*')].reject do |file|
+  basedir = file.sub(STYLE_ROOT + "/","").partition("/")[0]
   name = File.basename(file)
-  File.extname(file) == '.csl' || EXTRA_FILES_FILTER.any? { |f| f === name }
+  File.extname(file) == '.csl' || EXTRA_FILES_FILTER.any? { |f| f === name } || EXTRA_FILES_DIRECTORY_FILTER.any? { |d| d === basedir}
 end
 
-# Default license and rights text
-CSL::Schema.default_license = 'http://creativecommons.org/licenses/by-sa/3.0/'
-CSL::Schema.default_rights_string =
+# License URL and text
+CSL_LICENSE_URL = 'http://creativecommons.org/licenses/by-sa/3.0/'
+CSL_LICENSE_TEXT =
   'This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 License'
-
-
-# RSpec Error Formatter For Minimal Output
-require 'rspec/core/formatters/base_text_formatter'
-class ErrorFormatter < RSpec::Core::Formatters::BaseTextFormatter
-
-  def example_pending(example)
-    super(example)
-    output.print pending_color('*')
-  end
-
-  def example_failed(example)
-    super(example)
-    output.print failure_color('F')
-  end
-
-  def start_dump
-    super()
-    output.puts
-  end
-end
 
 def load_style(path)
   filename = File.basename(path)
-  id = filename[0..-5]
+  basename = filename[0..-5]
 
   begin
     style = CSL::Style.load(path)
-  rescue
-    # failed to parse the style. we'll report the error later
+  rescue => error
+    return [basename, [filename, path, nil, error]]
   end
 
   unless style.nil?
     begin
       if style.info.has_issn?
         [style.info.issn].flatten(1).each do |issn|
-          ISSN[issn.to_s] << id unless ISSN_FILTER.include?(issn.to_s)
+          ISSN[issn.to_s] << basename unless ISSN_FILTER.include?(issn.to_s)
         end
       end
 
       if style.info.has_eissn?
         [style.info.eissn].flatten(1).each do |issn|
-          ISSN[issn.to_s] << id unless ISSN_FILTER.include?(issn.to_s)
+          ISSN[issn.to_s] << basename unless ISSN_FILTER.include?(issn.to_s)
         end
       end
 
       if style.has_title?
         title = style.title.to_s.downcase
-        TITLES[title] << id unless TITLES_FILTER.include?(title)
+        TITLES[title] << basename unless TITLES_FILTER.include?(title)
       end
     rescue
-      warn "Failed to extract ISSN of style #{id}"
+      warn "Failed to extract ISSN of style #{basename}"
     end
   end
 
-  [id, [filename, path, style]]
+  [basename, [filename, path, style]]
 end
 
 
@@ -129,7 +124,7 @@ STYLE_FILTER = case ENV['CSL_TEST']
   when 'git'
     Regexp.new("/(#{`git diff --name-only`.split(/\s+/).join('|')})$")
   else
-    Regexp.new("/(#{ENV['CSL_TEST'].split(/\s+/).join('|')})$")  
+    Regexp.new("/(#{ENV['CSL_TEST'].split(/\s+/).join('|')})$")
   end
 
 def collect_styles(type = '')
@@ -151,5 +146,51 @@ Independents = Hash[collect_styles.each_with_index.map { |path, i|
   print '.'  if i % 120 == 0
   load_style(path)
 }]
+
+# Make sure we always have the basenames of all independent styles stored
+if ENV['CSL_TEST'] != nil
+  INDEPENDENTS_BASENAMES = Dir[File.join(STYLE_ROOT, '*.csl')].map { |path|
+    File.basename(path, '.csl')
+  }
+else
+  INDEPENDENTS_BASENAMES = Independents.keys
+end
+
+# Store basenames of dependent styles
+DEPENDENTS_BASENAMES = Dir[File.join(STYLE_ROOT, 'dependent', '*.csl')].map { |path|
+  File.basename(path, '.csl')
+}
+
+# Make sure the parents of selected dependents are loaded
+# (necessary for citation-format comparison)
+if ENV['CSL_TEST'] != nil
+  parent_basenames = []
+
+  Dependents.each_pair do |basename, (filename, path, style)|
+    if style.has_independent_parent_link?
+      parent_basename = style.independent_parent_link[/[^\/]+$/]
+      if !parent_basenames.include?(parent_basename)
+        parent_basenames << parent_basename
+      end
+    end
+  end
+
+  # eliminate parents that already have been loaded
+  parent_basenames.reject! do |basename|
+    Independents.has_key?(basename)
+  end
+
+  # load extra parents
+  extra_independents = Hash[parent_basenames.each_with_index.map { |basename, i|
+    print '.'  if i % 120 == 0
+
+    # convert basename to path
+    path = File.join(STYLE_ROOT, basename + '.csl')
+    load_style(path)
+  }]
+
+  # combine hashes
+  Independents.merge!(extra_independents)
+end
 
 puts

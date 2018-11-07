@@ -97,7 +97,7 @@
   </macro>
   <macro name="volume">
     <group delimiter=" ">
-      <text term="volume" form="short" suffix="." text-case="capitalize-first" strip-periods="true"/>
+      <text term="volume" form="short" text-case="capitalize-first"/>
       <text variable="volume"/>
     </group>
   </macro>
@@ -113,11 +113,14 @@
     </group>
   </macro>
   <citation collapse="citation-number">
+    <sort>
+      <key variable="citation-number"/>
+    </sort>
     <layout prefix="[" suffix="]" delimiter="," vertical-align="sup">
       <text variable="citation-number"/>
     </layout>
   </citation>
-  <bibliography et-al-min="6" et-al-use-first="6">
+  <bibliography et-al-min="7" et-al-use-first="6">
     <sort>
       <key macro="author-sort"/>
       <key variable="title"/>

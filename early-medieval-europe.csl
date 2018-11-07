@@ -21,18 +21,9 @@
   <locale xml:lang="en">
     <style-options punctuation-in-quote="false"/>
     <terms>
-      <term name="translator" form="short">
-        <single>trans.</single>
-        <multiple>trans.</multiple>
-      </term>
-      <term name="editortranslator" form="short">
-        <single>ed. and trans.</single>
-        <multiple>ed. and trans.</multiple>
-      </term>
-      <term name="chapter" form="short">
-        <single>c.</single>
-        <multiple>c.</multiple>
-      </term>
+      <term name="translator" form="short">trans.</term>
+      <term name="editortranslator" form="short">ed. and trans.</term>
+      <term name="chapter" form="short">c.</term>
       <term name="open-quote">‘</term>
       <term name="close-quote">’</term>
       <term name="open-inner-quote">“</term>
@@ -197,7 +188,7 @@
       </if>
     </choose>
   </macro>
-  <citation et-al-min="4" et-al-use-first="1" et-al-subsequent-min="4" et-al-subsequent-use-first="1" disambiguate-add-names="true">
+  <citation et-al-min="4" et-al-use-first="1" disambiguate-add-names="true">
     <layout suffix="." delimiter="; ">
       <choose>
         <if position="subsequent">
